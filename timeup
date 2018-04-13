@@ -7,9 +7,9 @@ function datediff () {
 }
 
 function showtime () {
-	h=$(echo "${1}/3600" | bc)
-	m=$(echo "(${1}%3600)/60" | bc)
-	s=$(echo "${1}%60" | bc)
+	h=$(echo "$1/3600" | bc)
+	m=$(echo "($1%3600)/60" | bc)
+	s=$(echo "$1%60" | bc)
 
 	line=''
 	if [ "$h" -ne 0 ]; then
