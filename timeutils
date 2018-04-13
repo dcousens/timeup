@@ -1,0 +1,27 @@
+#!/bin/bash
+
+function datediff () {
+	a=$(date --date=@"$1" +%s)
+	b=$(date --date=@"$2" +%s)
+	echo $(( (b - a) ))
+}
+
+function showtime () {
+	h=$(echo "${1}/3600" | bc)
+	m=$(echo "(${1}%3600)/60" | bc)
+	s=$(echo "${1}%60" | bc)
+
+	line=''
+	if [ "$h" -ne 0 ]; then
+		line+=$(printf '%dh' "$h")
+	fi
+	if [ "$m" -ne 0 ]; then
+		line+=$([[ -n $line ]] && echo ' ')
+		line+=$(printf '%dm' "$m")
+	fi
+	if [ "$s" -ne 0 ]; then
+		line+=$([[ -n $line ]] && echo ' ')
+		line+=$(printf '%ds' "$s")
+	fi
+	echo "$line"
+}

@@ -1,0 +1,34 @@
+#!/bin/bash
+
+source ./timeutils
+
+timedir="$TIMEUPDIR"
+if [ -z "$timedir" ]; then
+	timedir="$HOME/.timeup"
+	if [ ! -d "$timedir" ]; then
+		read -rp "Create $timedir? (y/N)? " ans
+		if [[ $ans =~ ^[Yy]$ ]]
+			exit
+		then
+			mkdir "$timedir"
+			mkdir "$timedir/projects"
+		fi
+	fi
+fi
+
+histfile="$timedir/history.txt"
+
+printf '%24s %14s\n' 'Task' 'Duration'
+printf '%24s %14s\n' '------------------------' '--------------'
+
+minutc=0
+if [ "$#" -gt 0 ]; then
+	minutc=$(date --date="$1" +%s)
+fi
+
+<"$histfile" python report.py "$minutc" | while read -r line; do
+	_task=$(echo "$line" | cut -f1 -d ' ')
+	_seconds=$(echo "$line" | cut -f2 -d ' ')
+	duration=$(showtime "$_seconds")
+	printf '%24s %14s\n' "$_task" "$duration"
+done
