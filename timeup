@@ -63,7 +63,7 @@ else
 		| uniq --count \
 		| sort -k1,1nr -k2,2 \
 		| colrm 1 8 \
-		| dmenu "$@" )
+		| dmenu -sb '#aa0000' "$@" )
 
 	if [ -z "$task" ]; then
 		exit 0
