@@ -32,9 +32,9 @@ if [ -z "$timedir" ]; then
 	timedir="$HOME/.timeup"
 	if [ ! -d "$timedir" ]; then
 		read -rp "Create $timedir? (y/N)? " ans
-		if [[ $ans =~ ^[Yy]$ ]]
+		if [[ $ans =~ ^[Yy]$ ]]; then
 			exit
-		then
+		else
 			mkdir -p "$timedir/projects"
 		fi
 	fi
