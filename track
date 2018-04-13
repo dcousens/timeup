@@ -13,15 +13,15 @@ function showtime () {
 
 	line=''
 	if [ "$h" -ne 0 ]; then
-		line+=$(printf '%02dh' "$h")
+		line+=$(printf '%dh' "$h")
 	fi
 	if [ "$m" -ne 0 ]; then
 		line+=$([[ -n $line ]] && echo ' ')
-		line+=$(printf '%02dm' "$m")
+		line+=$(printf '%dm' "$m")
 	fi
 	if [ "$s" -ne 0 ]; then
 		line+=$([[ -n $line ]] && echo ' ')
-		line+=$(printf '%02ds' "$s")
+		line+=$(printf '%ds' "$s")
 	fi
 	echo "$line"
 }
@@ -30,17 +30,19 @@ timedir="$TIMEUPDIR"
 if [ -z "$timedir" ]; then
 	timedir="$HOME/.timeup"
 	if [ ! -d "$timedir" ]; then
-		read -p "Create new database in $timedir? (yes/no)? " -n 1 -r
-		if [[ $REPLY =~ ^[Yy]$ ]]
-			mkdir "$timedir"
-		then
+		read -rp "Create $timedir? (y/N)? " ans
+		if [[ $ans =~ ^[Yy]$ ]]
 			exit
+		then
+			mkdir "$timedir"
+			mkdir "$timedir/projects"
 		fi
 	fi
 fi
 
 histfile="$timedir/history.txt"
 lockfile="$timedir/.lock"
+projdir="$timedir/projects"
 utc=$(date +'%s')
 
 if [ -f "$lockfile" ]; then
@@ -56,22 +58,21 @@ if [ -f "$lockfile" ]; then
 	rm "$lockfile"
 
 else
-	tasks=$(find "$timedir/projects" -mindepth 2 -printf '%P\n')
-	last20=$(<"$histfile" tail -n100 | cut -d ' ' -f1)
-	task=$(echo "$tasks" "$last20" \
+	tasks=$(find "$projdir" -mindepth 2 -printf '%P\n')
+# 	last20=$(<"$histfile" tail -n100 | cut -d ' ' -f1)
+	task=$(echo "$tasks" \
 		| sort \
 		| uniq --count \
 		| sort -k1,1nr -k2,2 \
 		| colrm 1 8 \
-		| dmenu "$@" \
-		| tee -a "$histfile")
+		| dmenu "$@" )
 
 	if [ -z "$task" ]; then
 		exit 0
 	fi
 
 	nbsp='<i> </i>'
-	notify-send "$nbsp$task"
+	notify-send "$nbsp$task started"
 	{
 		echo "$task $utc"
 	} > "$lockfile"
