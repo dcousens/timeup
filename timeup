@@ -58,9 +58,9 @@ if [ -f "$lockfile" ]; then
 	rm "$lockfile"
 
 else
-	tasks=$(find "$projdir" -mindepth 2 -printf '%P\n')
-# 	last20=$(<"$histfile" tail -n100 | cut -d ' ' -f1)
-	task=$(echo "$tasks" \
+	task=$(find "$projdir" -mindepth 2 -printf '%P\n' \
+		| cat - "$histfile" \
+		| cut -d ' ' -f1 \
 		| sort \
 		| uniq --count \
 		| sort -k1,1nr -k2,2 \
