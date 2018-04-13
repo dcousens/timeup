@@ -88,8 +88,6 @@ for task in report:
 END
 	)
 
-	echo "$1" "$2"
-
 	_format='%-24s %-14s\n'
 	printf "$_format" 'Task' 'Duration'
 	printf "$_format" '------------------------' '--------------'
