@@ -26,6 +26,7 @@ function showtime () {
 	echo "$line"
 }
 
+utc=$(date +'%s')
 timedir="$TIMEUPDIR"
 if [ -z "$timedir" ]; then
 	timedir="$HOME/.timeup"
@@ -43,17 +44,34 @@ fi
 histfile="$timedir/history.txt"
 lockfile="$timedir/.lock"
 projdir="$timedir/projects"
-utc=$(date +'%s')
 
-if [ -f "$lockfile" ]; then
-	task=$(<"$lockfile" cut -d ' ' -f1)
-	since=$(<"$lockfile" cut -d ' ' -f2)
-	diff=$(datediff "$since" "$utc")
+function endtask () {
+	_task=$(<"$lockfile" cut -d ' ' -f1)
+	_since=$(<"$lockfile" cut -d ' ' -f2)
+	diff=$(datediff "$_since" "$utc")
 	duration=$(showtime "$diff")
 	nbsp='<i> </i>'
-	notify-send -u critical -t 4000 "$nbsp$task stopped ($duration)"
-	echo "$task $since $utc" >> "$histfile"
+	notify-send -u critical -t 4000 "$nbsp$_task stopped ($duration)"
+	echo "$_task $_since $utc" >> "$histfile"
 	rm "$lockfile"
+}
+
+function starttask () {
+	if [ -f "$lockfile" ]; then
+		endtask
+	fi
+
+	nbsp='<i> </i>'
+	notify-send "$nbsp$1 started"
+	echo "$1 $utc" > "$lockfile"
+}
+
+if [ "$1" == 'stop' ]; then
+	if [ -f "$lockfile" ]; then
+		endtask
+	fi
+
+	exit 0
 fi
 
 task=$(find "$projdir" -mindepth 2 -printf '%P\n' \
@@ -63,12 +81,10 @@ task=$(find "$projdir" -mindepth 2 -printf '%P\n' \
 	| uniq --count \
 	| sort -k1,1nr -k2,2 \
 	| colrm 1 8 \
-	| dmenu -sb '#aa0000' "$@" )
+	| dmenu "$@" )
 
 if [ -z "$task" ]; then
 	exit 0
 fi
 
-nbsp='<i> </i>'
-notify-send "$nbsp$task started"
-echo "$task $utc" > "$lockfile"
+starttask "$task"
