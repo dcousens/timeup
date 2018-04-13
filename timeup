@@ -35,8 +35,7 @@ if [ -z "$timedir" ]; then
 		if [[ $ans =~ ^[Yy]$ ]]
 			exit
 		then
-			mkdir "$timedir"
-			mkdir "$timedir/projects"
+			mkdir -p "$timedir/projects"
 		fi
 	fi
 fi
