@@ -7,7 +7,7 @@ timeup
 
 ``` bash
 # a minimum date
-./report 12Apr
+timeup report 12Apr
          Task       Duration
 ------------- --------------
 	me/timeup      2h 7m 43s

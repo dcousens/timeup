@@ -1,6 +1,30 @@
 #!/bin/bash
 
-source ./timeutils
+function datediff () {
+	a=$(date --date=@"$1" +%s)
+	b=$(date --date=@"$2" +%s)
+	echo $(( (b - a) ))
+}
+
+function showtime () {
+	h=$(echo "${1}/3600" | bc)
+	m=$(echo "(${1}%3600)/60" | bc)
+	s=$(echo "${1}%60" | bc)
+
+	line=''
+	if [ "$h" -ne 0 ]; then
+		line+=$(printf '%dh' "$h")
+	fi
+	if [ "$m" -ne 0 ]; then
+		line+=$([[ -n $line ]] && echo ' ')
+		line+=$(printf '%dm' "$m")
+	fi
+	if [ "$s" -ne 0 ]; then
+		line+=$([[ -n $line ]] && echo ' ')
+		line+=$(printf '%ds' "$s")
+	fi
+	echo "$line"
+}
 
 utc=$(date +'%s')
 timedir="$TIMEUPDIR"
@@ -42,11 +66,53 @@ function starttask () {
 	echo "$1 $utc" > "$lockfile"
 }
 
+function report () {
+	printf '%24s %14s\n' 'Task' 'Duration'
+	printf '%24s %14s\n' '------------------------' '--------------'
+
+	minutc=0
+	if [ "$#" -gt 0 ]; then
+		minutc=$(date --date="$1" +%s)
+	fi
+
+	pymap=$(cat << END
+from collections import Counter
+import sys
+
+minutc = int(sys.argv[1])
+maxutc = 0xffffffffffff
+
+report = Counter()
+for line in sys.stdin:
+	(task, begin, end) = line.split(' ', 2)
+	if (int(begin) < minutc): continue
+
+	duration = int(end) - int(begin)
+	report[task] += duration
+
+for task in report:
+	print(task, report[task])
+END
+	)
+
+	<"$histfile" python -c "$pymap" "$minutc" | while read -r line; do
+		_task=$(echo "$line" | cut -f1 -d ' ')
+		_seconds=$(echo "$line" | cut -f2 -d ' ')
+		duration=$(showtime "$_seconds")
+		printf '%24s %14s\n' "$_task" "$duration"
+	done
+}
+
 if [ "$1" == 'stop' ]; then
 	if [ -f "$lockfile" ]; then
 		endtask
 	fi
 
+	exit 0
+fi
+
+if [ "$1" == 'report' ]; then
+	report "$2" "$3"
 	exit 0
 fi
 
