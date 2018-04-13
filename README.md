@@ -14,4 +14,4 @@ Task                     Duration
 me/timeup                2h 7m 43s
 ```
 
-Uses [`ionicons`](http://ionicons.com/), `community/ttf-ionicons` on Arch
+Uses [`ionicons`](http://ionicons.com/) (for the `notify-send` icon), `community/ttf-ionicons` on Arch
