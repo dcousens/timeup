@@ -66,9 +66,11 @@ function starttask () {
 	echo "$1 $utc" > "$lockfile"
 }
 
+# shellcheck disable=SC2059
 function report () {
-	printf '%24s %14s\n' 'Task' 'Duration'
-	printf '%24s %14s\n' '------------------------' '--------------'
+	_format='%-24s %-14s\n'
+	printf "$_format" 'Task' 'Duration'
+	printf "$_format" '------------------------' '--------------'
 
 	minutc=0
 	if [ "$#" -gt 0 ]; then
@@ -99,7 +101,7 @@ END
 		_task=$(echo "$line" | cut -f1 -d ' ')
 		_seconds=$(echo "$line" | cut -f2 -d ' ')
 		duration=$(showtime "$_seconds")
-		printf '%24s %14s\n' "$_task" "$duration"
+		printf "$_format" "$_task" "$duration"
 	done
 }
 

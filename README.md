@@ -1,16 +1,17 @@
 # timeup
 
+Start or stop a timer
 ``` bash
-# start/stop a timer
-timeup
+$ timeup
 ```
 
+Generate a report
 ``` bash
-# a minimum date
-timeup report 12Apr
-         Task       Duration
-------------- --------------
-	me/timeup      2h 7m 43s
+$ timeup report 12Apr
+
+Task                     Duration
+------------------------ --------------
+me/timeup                2h 7m 43s
 ```
 
 Uses [`ionicons`](http://ionicons.com/), `community/ttf-ionicons` on Arch
