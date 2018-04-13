@@ -52,9 +52,7 @@ if [ -f "$lockfile" ]; then
 	duration=$(showtime "$diff")
 	nbsp='<i> </i>'
 	notify-send -u critical "$nbsp$task stopped ($duration)"
-	{
-		echo "$task $since $utc"
-	} > "$histfile"
+	echo "$task $since $utc" > "$histfile"
 	rm "$lockfile"
 
 else
@@ -73,7 +71,5 @@ else
 
 	nbsp='<i> </i>'
 	notify-send "$nbsp$task started"
-	{
-		echo "$task $utc"
-	} > "$lockfile"
+	echo "$task $utc" > "$lockfile"
 fi
