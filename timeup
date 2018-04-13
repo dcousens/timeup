@@ -77,9 +77,12 @@ maxutc = int(sys.argv[2])
 report = Counter()
 for line in sys.stdin:
 	(task, begin, end) = line.split(' ', 2)
-	if (int(begin) < minutc): continue
+	begin = int(begin)
+	end = int(end)
+	if (begin < minutc): continue
+	if (end > maxutc): continue
 
-	duration = int(end) - int(begin)
+	duration = end - begin
 	report[task] += duration
 
 for task in report:
