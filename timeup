@@ -51,25 +51,24 @@ if [ -f "$lockfile" ]; then
 	diff=$(datediff "$since" "$utc")
 	duration=$(showtime "$diff")
 	nbsp='<i> </i>'
-	notify-send -u critical "$nbsp$task stopped ($duration)"
+	notify-send -u critical -t 4000 "$nbsp$task stopped ($duration)"
 	echo "$task $since $utc" >> "$histfile"
 	rm "$lockfile"
-
-else
-	task=$(find "$projdir" -mindepth 2 -printf '%P\n' \
-		| cat - "$histfile" \
-		| cut -d ' ' -f1 \
-		| sort \
-		| uniq --count \
-		| sort -k1,1nr -k2,2 \
-		| colrm 1 8 \
-		| dmenu -sb '#aa0000' "$@" )
-
-	if [ -z "$task" ]; then
-		exit 0
-	fi
-
-	nbsp='<i> </i>'
-	notify-send "$nbsp$task started"
-	echo "$task $utc" > "$lockfile"
 fi
+
+task=$(find "$projdir" -mindepth 2 -printf '%P\n' \
+	| cat - "$histfile" \
+	| cut -d ' ' -f1 \
+	| sort \
+	| uniq --count \
+	| sort -k1,1nr -k2,2 \
+	| colrm 1 8 \
+	| dmenu -sb '#aa0000' "$@" )
+
+if [ -z "$task" ]; then
+	exit 0
+fi
+
+nbsp='<i> </i>'
+notify-send "$nbsp$task started"
+echo "$task $utc" > "$lockfile"
