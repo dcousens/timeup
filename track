@@ -26,31 +26,39 @@ function showtime () {
 	echo "$line"
 }
 
-histfile="$TUHISTFILE"
-lockfile="$TULOCKFILE"
-if [ -z "$histfile" ]; then
-	histfile="$HOME/.time_history"
-	lockfile="$HOME/.time_lock"
+timedir="$TIMEUPDIR"
+if [ -z "$timedir" ]; then
+	timedir="$HOME/.timeup"
+	if [ ! -d "$timedir" ]; then
+		read -p "Create new database in $timedir? (yes/no)? " -n 1 -r
+		if [[ $REPLY =~ ^[Yy]$ ]]
+			mkdir "$timedir"
+		then
+			exit
+		fi
+	fi
 fi
 
+histfile="$timedir/history.txt"
+lockfile="$timedir/.lock"
 utc=$(date +'%s')
 
 if [ -f "$lockfile" ]; then
 	task=$(<"$lockfile" cut -d ' ' -f1)
 	since=$(<"$lockfile" cut -d ' ' -f2)
 	diff=$(datediff "$since" "$utc")
-	line=$(showtime "$diff")
+	duration=$(showtime "$diff")
 	nbsp='<i> </i>'
-	notify-send -u critical "$nbsp$task stopped ($line)"
+	notify-send -u critical "$nbsp$task stopped ($duration)"
 	{
 		echo "$task $since $utc"
 	} > "$histfile"
 	rm "$lockfile"
 
 else
-	tasks=$(find "$HOME/workspace/dcousens/timeup/projects" -mindepth 2 -printf '%P\n')
-	task=$(echo "$tasks" \
-		| cat "$histfile" - \
+	tasks=$(find "$timedir/projects" -mindepth 2 -printf '%P\n')
+	last20=$(<"$histfile" tail -n100 | cut -d ' ' -f1)
+	task=$(echo "$tasks" "$last20" \
 		| sort \
 		| uniq --count \
 		| sort -k1,1nr -k2,2 \
