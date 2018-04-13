@@ -68,21 +68,12 @@ function starttask () {
 
 # shellcheck disable=SC2059
 function report () {
-	_format='%-24s %-14s\n'
-	printf "$_format" 'Task' 'Duration'
-	printf "$_format" '------------------------' '--------------'
-
-	minutc=0
-	if [ "$#" -gt 0 ]; then
-		minutc=$(date --date="$1" +%s)
-	fi
-
 	pymap=$(cat << END
 from collections import Counter
 import sys
 
 minutc = int(sys.argv[1])
-maxutc = 0xffffffffffff
+maxutc = int(sys.argv[2])
 
 report = Counter()
 for line in sys.stdin:
@@ -97,7 +88,13 @@ for task in report:
 END
 	)
 
-	<"$histfile" python -c "$pymap" "$minutc" | while read -r line; do
+	echo "$1" "$2"
+
+	_format='%-24s %-14s\n'
+	printf "$_format" 'Task' 'Duration'
+	printf "$_format" '------------------------' '--------------'
+
+	<"$histfile" python -c "$pymap" "$1" "$2" | while read -r line; do
 		_task=$(echo "$line" | cut -f1 -d ' ')
 		_seconds=$(echo "$line" | cut -f2 -d ' ')
 		duration=$(showtime "$_seconds")
@@ -114,7 +111,20 @@ if [ "$1" == 'stop' ]; then
 fi
 
 if [ "$1" == 'report' ]; then
-	report "$2" "$3"
+	minutc=0
+	maxutc=4131262800 # 2100-12-1
+
+	# date to date
+	if [ "$#" -gt 2 ]; then
+		minutc=$(date --date="$2" +%s)
+		maxutc=$(date --date="$3" +%s)
+	# 1 day
+	elif [ "$#" -gt 1 ]; then
+		minutc=$(date --date="$2" +%s)
+		maxutc=$(echo "$minutc+86400" | bc)
+	fi
+
+	report "$minutc" "$maxutc"
 	exit 0
 fi
 
