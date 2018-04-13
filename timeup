@@ -46,8 +46,8 @@ lockfile="$timedir/.lock"
 projdir="$timedir/projects"
 
 function endtask () {
-	_task=$(<"$lockfile" cut -d ' ' -f1)
-	_since=$(<"$lockfile" cut -d ' ' -f2)
+	_task=$(<"$lockfile" cut -f1 -d ' ')
+	_since=$(<"$lockfile" cut -f2 -d ' ')
 	diff=$(datediff "$_since" "$utc")
 	duration=$(showtime "$diff")
 	nbsp='<i> </i>'
@@ -74,14 +74,15 @@ if [ "$1" == 'stop' ]; then
 	exit 0
 fi
 
-task=$(find "$projdir" -mindepth 2 -printf '%P\n' \
-	| cat - "$histfile" \
-	| cut -d ' ' -f1 \
+last10="$(<"$histfile" tail -n10)"
+tasks=$(find "$projdir" -mindepth 2 -printf '%P\n')
+task=$(echo -e "$last10\\n$tasks" \
+	| cut -f1 -d ' ' \
 	| sort \
 	| uniq --count \
 	| sort -k1,1nr -k2,2 \
 	| colrm 1 8 \
-	| dmenu "$@" )
+	| dmenu "$@")
 
 if [ -z "$task" ]; then
 	exit 0
