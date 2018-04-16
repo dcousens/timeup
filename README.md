@@ -29,4 +29,11 @@ $ timeup report 12Apr-2018 12Apr-2019
 ...
 ```
 
+Add untracked time
+``` bash
+$ timeup track me/timeup 10am 11am
+
+...
+```
+
 Uses [`ionicons`](http://ionicons.com/) (for the `notify-send` icon), `community/ttf-ionicons` on Arch

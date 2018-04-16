@@ -43,15 +43,20 @@ fi
 histfile="$timedir/history.txt"
 lockfile="$timedir/.lock"
 projdir="$timedir/projects"
+nbsp='<i> </i>'
+
+function track () {
+	diff=$(datediff "$2" "$3")
+	duration=$(showtime "$diff")
+	notify-send -u critical -t 4000 "$nbsp$1 ($duration)"
+	echo "logged $1 ($duration)"
+	echo "$1 $2 $3" >> "$histfile"
+}
 
 function endtask () {
 	_task=$(<"$lockfile" cut -f1 -d ' ')
 	_since=$(<"$lockfile" cut -f2 -d ' ')
-	diff=$(datediff "$_since" "$utc")
-	duration=$(showtime "$diff")
-	nbsp='<i> </i>'
-	notify-send -u critical -t 4000 "$nbsp$_task stopped ($duration)"
-	echo "$_task $_since $utc" >> "$histfile"
+	track "$_task" "$_since" "$utc"
 	rm "$lockfile"
 }
 
@@ -60,7 +65,6 @@ function starttask () {
 		endtask
 	fi
 
-	nbsp='<i> </i>'
 	notify-send "$nbsp$1 started"
 	echo "$1 $utc" > "$lockfile"
 }
@@ -107,6 +111,17 @@ if [ "$1" == 'stop' ]; then
 		endtask
 	fi
 
+	exit 0
+fi
+
+if [ "$1" == 'track' ]; then
+	if [ "$#" -ne 4 ]; then
+		exit 1
+	fi
+
+	a=$(date --date="$3" +%s)
+	b=$(date --date="$4" +%s)
+	track "$2" "$a" "$b"
 	exit 0
 fi
 
