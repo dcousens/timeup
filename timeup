@@ -116,6 +116,7 @@ fi
 
 if [ "$1" == 'track' ]; then
 	if [ "$#" -ne 4 ]; then
+		echo 'Invalid arguments'
 		exit 1
 	fi
 
