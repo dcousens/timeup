@@ -14,9 +14,17 @@ Task                     Duration
 me/timeup                2h 7m 43s
 ```
 
-Generate a report (date to date)
+Generate a report (date to date, see [documentation](https://www.gnu.org/software/coreutils/manual/html_node/Examples-of-date.html))
 ``` bash
 $ timeup report 12Apr 14Apr
+
+...
+```
+
+or
+
+``` bash
+$ timeup report 12Apr-2018 12Apr-2019
 
 ...
 ```
