@@ -115,13 +115,17 @@ if [ "$1" == 'stop' ]; then
 fi
 
 if [ "$1" == 'track' ]; then
-	if [ "$#" -ne 4 ]; then
+	if [ "$#" -eq 3 ]; then
+		a="$utc"
+		b=$(date --date="now+$3" +%s)
+	elif [ "$#" -eq 4 ]; then
+		a=$(date --date="$3" +%s)
+		b=$(date --date="$4" +%s)
+	else
 		echo 'Invalid arguments'
 		exit 1
 	fi
 
-	a=$(date --date="$3" +%s)
-	b=$(date --date="$4" +%s)
 	track "$2" "$a" "$b"
 	exit 0
 fi

@@ -36,4 +36,12 @@ $ timeup track me/timeup 10am 11am
 ...
 ```
 
+or
+
+``` bash
+$ timeup track me/timeup 10minutes
+
+...
+```
+
 Uses [`ionicons`](http://ionicons.com/) (for the `notify-send` icon), `community/ttf-ionicons` on Arch
