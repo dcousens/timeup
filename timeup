@@ -144,9 +144,9 @@ if [ "$1" == 'report' ]; then
 	exit 0
 fi
 
-last10="$(<"$histfile" tail -n10)"
+last5="$(<"$histfile" tail -n5)"
 tasks=$(find "$projdir" -mindepth 2 -printf '%P\n')
-task=$(echo -e "$last10\\n$tasks" \
+task=$(echo -e "$last5\\n$tasks" \
 	| cut -f1 -d ' ' \
 	| sort \
 	| uniq --count \
