@@ -78,6 +78,7 @@ import sys
 minutc = int(sys.argv[1])
 maxutc = int(sys.argv[2])
 
+sum = 0
 report = Counter()
 for line in sys.stdin:
 	(task, begin, end) = line.split(' ', 2)
@@ -88,9 +89,12 @@ for line in sys.stdin:
 
 	duration = end - begin
 	report[task] += duration
+	sum += duration
 
 for task in report:
 	print(task, report[task])
+
+print('all', sum)
 END
 	)
 
