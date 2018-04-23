@@ -79,7 +79,7 @@ minutc = int(sys.argv[1])
 maxutc = int(sys.argv[2])
 
 sum = 0
-report = Counter()
+count = Counter()
 for line in sys.stdin:
 	(task, begin, end) = line.split(' ', 2)
 	begin = int(begin)
@@ -88,11 +88,12 @@ for line in sys.stdin:
 	if (end > maxutc): continue
 
 	duration = end - begin
-	report[task] += duration
+	count[task] += duration
 	sum += duration
 
-for task in report:
-	print(task, report[task])
+report = sorted((x, count[x]) for x in count)
+for a, b in report:
+	print(a, b)
 
 print('all', sum)
 END
