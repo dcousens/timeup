@@ -105,7 +105,7 @@ report = sorted((x, count[x]) for x in count)
 for a, b in report:
 	print(a, b)
 
-print('all', sum)
+print('total', sum)
 END
 	)
 
