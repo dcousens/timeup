@@ -40,6 +40,7 @@ if [ -z "$timedir" ]; then
 	fi
 fi
 
+archivefile="$timedir/archived.txt"
 histfile="$timedir/history.txt"
 lockfile="$timedir/.lock"
 projdir="$timedir/projects"
@@ -58,6 +59,15 @@ function endtask () {
 	_since=$(<"$lockfile" cut -f2 -d ' ')
 	track "$_task" "$_since" "$utc"
 	rm "$lockfile"
+}
+
+function archivetask () {
+	bak=$(mktemp)
+	<"$histfile" grep "^$1/" >> "$archivefile"
+	<"$histfile" grep -v "^$1/" > "$bak"
+	count=$(<"$histfile" grep --count "^$1/")
+	echo "archived $1 ($count entries)"
+	mv "$bak" "$histfile"
 }
 
 function starttask () {
@@ -117,6 +127,16 @@ if [ "$1" == 'stop' ]; then
 	fi
 
 	exit 0
+fi
+
+if [ "$1" == 'archive' ]; then
+	if [ "$#" -ne 3 ]; then
+		archivetask "$2"
+		exit 0
+	fi
+
+	echo 'Invalid arguments'
+	exit 1
 fi
 
 if [ "$1" == 'track' ]; then
