@@ -11,15 +11,15 @@ reader = csv.DictReader(sys.stdin, delimiter=',')
 for row in reader:
     date = row['Date']
     hours = row['Hours']
-
     client = row['Client']
     project = row['Project']
     task = row['Task']
+    
+    task = '/'.join(x for x in (client, project, task) if len(x) > 0).lower()
 
     date = datetime.datetime.strptime(date, "%Y-%m-%d")
     hours = datetime.timedelta(hours=float(hours))
-
-    task = '/'.join(x for x in (client, project, task) if len(x) > 0).lower()
     start = date
     end = date + hours
+    
     print(task, asutc(start), asutc(end))
