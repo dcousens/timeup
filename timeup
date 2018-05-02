@@ -175,10 +175,12 @@ fi
 
 task=$( \
 	{ \
-		yes "$(<"$histfile" tail -n1)" | head -n10 # highest priority
-		<"$histfile" tail -n5 # prioritize last 5
-		<"$histfile" tail -n50 | cut -f1 -d' ' | sort --unique # prioritize semi-recent
-		find "$projdir" -mindepth 2 -printf '%P\n'
+		find "$projdir" -mindepth 2 -printf '%P\n' # everything
+		yes "$(<"$histfile" tail -n1)" | head -n4 # previous
+		yes "$(<"$histfile" tail -n3)" | head -n3 # previous 3
+		<"$histfile" tail -n5 # recent 5
+		<"$histfile" tail -n50 | cut -f1 -d' ' | sort --unique # recent 50
+		<"$histfile" tail -n100 | cut -f1 -d' ' | sort --unique # recent 100
 	} | cut -f1 -d' ' \
 	| sort \
 	| uniq --count \
