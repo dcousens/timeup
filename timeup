@@ -55,8 +55,8 @@ function track () {
 }
 
 function endtask () {
-	_task=$(<"$lockfile" cut -f1 -d ' ')
-	_since=$(<"$lockfile" cut -f2 -d ' ')
+	_task=$(<"$lockfile" cut -f1 -d' ')
+	_since=$(<"$lockfile" cut -f2 -d' ')
 	track "$_task" "$_since" "$utc"
 	rm "$lockfile"
 }
@@ -114,8 +114,8 @@ END
 	printf "$_format" '------------------------' '--------------'
 
 	<"$histfile" python -c "$pymap" "$1" "$2" | while read -r line; do
-		_task=$(echo "$line" | cut -f1 -d ' ')
-		_seconds=$(echo "$line" | cut -f2 -d ' ')
+		_task=$(echo "$line" | cut -f1 -d' ')
+		_seconds=$(echo "$line" | cut -f2 -d' ')
 		duration=$(showtime "$_seconds")
 		printf "$_format" "$_task" "$duration"
 	done
@@ -175,10 +175,11 @@ fi
 
 task=$( \
 	{ \
-		yes "$(<"$histfile" tail -n1)" | head -n3
-		<"$histfile" tail -n5
+		yes "$(<"$histfile" tail -n1)" | head -n10 # highest priority
+		<"$histfile" tail -n5 # prioritize last 5
+		<"$histfile" tail -n50 | cut -f1 -d' ' | sort --unique # prioritize semi-recent
 		find "$projdir" -mindepth 2 -printf '%P\n'
-	} | cut -f1 -d ' ' \
+	} | cut -f1 -d' ' \
 	| sort \
 	| uniq --count \
 	| sort -k1,1nr -k2,2 \
