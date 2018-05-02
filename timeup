@@ -173,14 +173,11 @@ if [ "$1" == 'report' ]; then
 	exit 0
 fi
 
-last1="$(<"$histfile" tail -n1)"
-last5="$(<"$histfile" tail -n5)"
-tasks=$(find "$projdir" -mindepth 2 -printf '%P\n')
 task=$( \
 	{ \
-		yes "$last1" | head -n3
-		echo "$last5"
-		echo "$tasks"
+		yes "$(<"$histfile" tail -n1)" | head -n3
+		<"$histfile" tail -n5
+		find "$projdir" -mindepth 2 -printf '%P\n'
 	} | cut -f1 -d ' ' \
 	| sort \
 	| uniq --count \
