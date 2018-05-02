@@ -178,8 +178,9 @@ last5="$(<"$histfile" tail -n5)"
 tasks=$(find "$projdir" -mindepth 2 -printf '%P\n')
 task=$( \
 	{ \
-		echo -e "$last5\\n$last1\\n$tasks"
 		yes "$last1" | head -n3
+		echo "$last5"
+		echo "$tasks"
 	} | cut -f1 -d ' ' \
 	| sort \
 	| uniq --count \
