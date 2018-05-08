@@ -63,9 +63,9 @@ function endtask () {
 
 function archivetask () {
 	bak=$(mktemp)
-	<"$histfile" grep "^$1/" >> "$archivefile"
-	<"$histfile" grep -v "^$1/" > "$bak"
-	count=$(<"$histfile" grep --count "^$1/")
+	<"$histfile" grep "^$1[ /]" >> "$archivefile"
+	<"$histfile" grep -v "^$1[ /]" > "$bak"
+	count=$(<"$histfile" grep --count "^$1[ /]")
 	echo "archived $1 ($count entries)"
 	mv "$bak" "$histfile"
 }
