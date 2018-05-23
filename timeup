@@ -113,7 +113,10 @@ END
 	printf "$_format" 'Task' 'Duration'
 	printf "$_format" '------------------------' '--------------'
 
-	<"$histfile" python -c "$pymap" "$1" "$2" | while read -r line; do
+	{
+		cat "$histfile"
+		[ -n "$3" ] && cat "$archivefile"
+	} | python -c "$pymap" "$1" "$2" | while read -r line; do
 		_task=$(echo "$line" | cut -f1 -d' ')
 		_seconds=$(echo "$line" | cut -f2 -d' ')
 		duration=$(showtime "$_seconds")
@@ -155,7 +158,7 @@ if [ "$1" == 'track' ]; then
 	exit 0
 fi
 
-if [ "$1" == 'report' ]; then
+if [ "$1" == 'report' ] || [ "$1" == 'areport' ]; then
 	minutc=0
 	maxutc=4131262800 # 2100-12-1
 
@@ -169,7 +172,8 @@ if [ "$1" == 'report' ]; then
 		maxutc=$(echo "$minutc+86400" | bc)
 	fi
 
-	report "$minutc" "$maxutc"
+	doarchive=$([ "$1" == 'areport' ] && echo ' ')
+	report "$minutc" "$maxutc" "$doarchive"
 	exit 0
 fi
 
