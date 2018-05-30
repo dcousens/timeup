@@ -142,6 +142,19 @@ if [ "$1" == 'archive' ]; then
 	exit 1
 fi
 
+if [ "$1" == 'last' ]; then
+	line=$(<"$histfile" tail -n1)
+	_task=$(echo "$line" | cut -f1 -d' ')
+	_utc1=$(echo "$line" | cut -f2 -d' ')
+	_utc2=$(echo "$line" | cut -f3 -d' ')
+	_a=$(date --date=@"$_utc1")
+	_b=$(date --date=@"$_utc2")
+	diff=$(datediff "$_utc1" "$_utc2")
+	duration=$(showtime "$diff")
+	echo "last task was $_task from $_a to $_b ($duration)"
+	exit 0
+fi
+
 if [ "$1" == 'track' ]; then
 	if [ "$#" -eq 3 ]; then
 		a="$utc"
