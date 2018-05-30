@@ -147,11 +147,11 @@ if [ "$1" == 'last' ]; then
 	_task=$(echo "$line" | cut -f1 -d' ')
 	_utc1=$(echo "$line" | cut -f2 -d' ')
 	_utc2=$(echo "$line" | cut -f3 -d' ')
-	_a=$(date --date=@"$_utc1")
-	_b=$(date --date=@"$_utc2")
+	_a=$(date --date=@"$_utc1" +"%a %H:%M %d/%m")
+	_b=$(date --date=@"$_utc2" +"%a %H:%M %d/%m")
 	diff=$(datediff "$_utc1" "$_utc2")
 	duration=$(showtime "$diff")
-	echo "last task was $_task from $_a to $_b ($duration)"
+	echo "last task was $_task, $_a to $_b for $duration"
 	exit 0
 fi
 
