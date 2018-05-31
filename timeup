@@ -157,8 +157,8 @@ fi
 
 if [ "$1" == 'track' ]; then
 	if [ "$#" -eq 3 ]; then
-		a="$utc"
-		b=$(date --date="now+$3" +%s)
+		a=$(date --date="now-$3" +%s)
+		b="$utc"
 	elif [ "$#" -eq 4 ]; then
 		a=$(date --date="$3" +%s)
 		b=$(date --date="$4" +%s)
