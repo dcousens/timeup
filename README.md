@@ -26,9 +26,9 @@ $ timeup report 12Apr 14Apr
 $ timeup report 12Apr-2018 12Apr-2019
 # ...
 $ timeup report mytask
-# or
+# ...
 $ timeup report 12Apr mytask
-# or
+# ...
 $ timeup report 12Apr 14Apr mytask
 ```
 
