@@ -110,7 +110,11 @@ END
 	)
 
 	_format='%-24s %-14s\n'
-	printf "$_format" 'Task' 'Duration'
+	if [ -n "$3" ]; then
+		printf "$_format" "Task ($3)" 'Duration'
+	else
+		printf "$_format" 'Task' 'Duration'
+	fi
 	printf "$_format" '------------------------' '--------------'
 	{
 		if [ -n "$3" ]; then
@@ -178,6 +182,7 @@ fi
 if [ "$1" == 'report' ] || [ "$1" == 'areport' ]; then
 	minutc=0
 	maxutc=4131262800 # 2100-12-1
+	task=''
 
 	# date to date
 	if [ "$#" -gt 2 ]; then
@@ -185,12 +190,16 @@ if [ "$1" == 'report' ] || [ "$1" == 'areport' ]; then
 		maxutc=$(date --date="$3" +%s)
 	# 1 day
 	elif [ "$#" -gt 1 ]; then
-		minutc=$(date --date="$2" +%s)
-		maxutc=$(echo "$minutc+86400" | bc)
+		minutc=$(date --date="$2" +%s 2> /dev/null)
+		if [ -z "$minutc" ]; then
+			minutc=0
+			task="$2"
+		else
+			maxutc=$(echo "$minutc+86400" | bc)
+		fi
 	fi
 
 	# support task filtering
-	task=''
 	if [ "$#" -gt 3 ]; then
 		task="$4"
 	fi
