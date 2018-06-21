@@ -112,10 +112,14 @@ END
 	_format='%-24s %-14s\n'
 	printf "$_format" 'Task' 'Duration'
 	printf "$_format" '------------------------' '--------------'
-
 	{
-		cat "$histfile"
-		[ -n "$3" ] && cat "$archivefile"
+		if [ -n "$3" ]; then
+			<"$histfile" grep "^$3[ /]"
+			[ -n "$4" ] && <"$archivefile" grep "^$3[ /]"
+		else
+			cat "$histfile"
+			[ -n "$4" ] && cat "$archivefile"
+		fi
 	} | python -c "$pymap" "$1" "$2" | while read -r line; do
 		_task=$(echo "$line" | cut -f1 -d' ')
 		_seconds=$(echo "$line" | cut -f2 -d' ')
@@ -185,8 +189,14 @@ if [ "$1" == 'report' ] || [ "$1" == 'areport' ]; then
 		maxutc=$(echo "$minutc+86400" | bc)
 	fi
 
+	# support task filtering
+	task=''
+	if [ "$#" -gt 3 ]; then
+		task="$4"
+	fi
+
 	doarchive=$([ "$1" == 'areport' ] && echo ' ')
-	report "$minutc" "$maxutc" "$doarchive"
+	report "$minutc" "$maxutc" "$task" "$doarchive"
 	exit 0
 fi
 
