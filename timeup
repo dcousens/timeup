@@ -132,6 +132,10 @@ END
 	done
 }
 
+function drop () {
+	sed -i '$ d' "$histfile"
+}
+
 function log () {
 	_a=$(date --date=@"$2" +"%a %H:%M %d/%m")
 	_b=$(date --date=@"$3" +"%a %H:%M %d/%m")
@@ -183,6 +187,19 @@ if [ "$1" == 'track' ]; then
 	exit 0
 fi
 
+if [ "$1" == 'drop' ]; then
+	line=$(<"$histfile" tail -n1)
+	_task=$(echo "$line" | cut -f1 -d' ')
+	_utc1=$(echo "$line" | cut -f2 -d' ')
+	_utc2=$(echo "$line" | cut -f3 -d' ')
+	diff=$(datediff "$_utc1" "$_utc2")
+	duration=$(showtime "$diff")
+
+	drop
+	notify-send -u critical -t 4000 "$nbsp""Dropped $_task ($duration)"
+	exit 1
+fi
+
 if [ "$1" == 'edit' ]; then
 	line=$(<"$histfile" tail -n1)
 	_task=$(echo "$line" | cut -f1 -d' ')
@@ -200,7 +217,7 @@ if [ "$1" == 'edit' ]; then
 		exit 1
 	fi
 
-	sed -i '$ d' "$histfile"
+	drop
 	track "$_task" "$a" "$b"
 	exit 0
 fi
