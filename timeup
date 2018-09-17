@@ -49,7 +49,7 @@ nbsp='<i> </i>'
 function track () {
 	diff=$(datediff "$2" "$3")
 	duration=$(showtime "$diff")
-	notify-send -u critical -t 4000 "$nbsp$1 ($duration)"
+	notify-send -u critical -t 4000 "$nbsp$1 ($duration)"
 	echo "logged $1 ($duration)"
 	echo "$1 $2 $3" >> "$histfile"
 }
@@ -75,7 +75,7 @@ function starttask () {
 		endtask
 	fi
 
-	notify-send "$nbsp$1 started"
+	notify-send "$nbsp$1 started"
 	echo "$1 $utc" > "$lockfile"
 }
 
@@ -207,7 +207,7 @@ if [ "$1" == 'drop' ]; then
 	duration=$(showtime "$diff")
 
 	drop
-	notify-send -u critical -t 4000 "$nbsp""Dropped $_task ($duration)"
+	notify-send -u critical -t 4000 "$nbsp""Dropped $_task ($duration)"
 	exit 1
 fi
 
