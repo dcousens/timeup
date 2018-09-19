@@ -35,7 +35,7 @@ if [ -z "$timedir" ]; then
 		if [[ $ans =~ ^[Yy]$ ]]; then
 			exit
 		else
-			mkdir -p "$timedir/projects"
+			mkdir -p "$timedir"
 		fi
 	fi
 fi
@@ -43,7 +43,6 @@ fi
 archivefile="$timedir/archived.txt"
 histfile="$timedir/history.txt"
 lockfile="$timedir/.lock"
-projdir="$timedir/projects"
 nbsp='<i> </i>'
 
 function track () {
@@ -270,7 +269,6 @@ fi
 
 task=$( \
 	{ \
-		find "$projdir" -mindepth 2 -printf '%P\n' # everything
 		yes "$(<"$histfile" tail -n1)" | head -n4 # previous
 		yes "$(<"$histfile" tail -n3)" | head -n3 # previous 3
 		<"$histfile" tail -n5 # recent 5
