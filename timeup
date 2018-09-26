@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 function datediff () {
 	a=$(date --date=@"$1" +%s)
