@@ -115,25 +115,26 @@ for line in sys.stdin:
 	duration = end - begin
 	durations[task] += duration
 	count[task] += 1
-	durations['total'] += duration
-	count['total'] += 1
+	durations['Total'] += duration
+	count['Total'] += 1
 
 report = sorted((x, durations[x]) for x in durations)
 for a, b in report:
-	if (a == 'total'): continue
+	if (a == 'Total'): continue
 	print(a, count[a], b)
 
-print('total', count['total'], durations['total'])
+print()
+print('Total', count['Total'], durations['Total'])
 END
 	)
 
-	_format='%-24s %-14s\n'
+	_format='%-24s %-14s %-5s\n'
 	if [ -n "$3" ]; then
-		printf "$_format" "Task ($3)" 'Duration'
+		printf "$_format" "Task ($3)" 'Duration' 'Count'
 	else
-		printf "$_format" 'Task' 'Duration'
+		printf "$_format" 'Task' 'Duration' 'Count'
 	fi
-	printf "$_format" '------------------------' '--------------'
+	printf "$_format" '------------------------' '--------------' '-----'
 	{
 		if [ -n "$3" ]; then
 			<"$histfile" grep "^$3[ /]"
@@ -143,11 +144,15 @@ END
 			[ -n "$4" ] && cat "$archivefile"
 		fi
 	} | python -c "$pymap" "$1" "$2" | while read -r line; do
+		if [ -z "$line" ]; then
+			printf "$_format" '------------------------' '--------------' '-----'
+			continue
+		fi
 		_task=$(echo "$line" | cut -f1 -d' ')
 		_instances=$(echo "$line" | cut -f2 -d' ')
 		_seconds=$(echo "$line" | cut -f3 -d' ')
 		duration=$(showtime "$_seconds")
-		printf "$_format" "$_task ($_instances)" "$duration"
+		printf "$_format" "$_task" "$duration" "$_instances"
 	done
 }
 
