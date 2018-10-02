@@ -39,4 +39,4 @@ $ timeup track me/timeup 10am 11am
 $ timeup track me/timeup 10minutes
 ```
 
-# LICENSE [GPLv3](LICENSE)
+# LICENSE [MIT](LICENSE)
