@@ -61,10 +61,27 @@ function endtask () {
 }
 
 function archivetask () {
+	pyfilter=$(cat << END
+import sys
+
+wanted = sys.argv[1]
+minutc = int(sys.argv[2])
+maxutc = int(sys.argv[3])
+flag = sys.argv[4] == 'match'
+for line in sys.stdin:
+	(task, begin, end) = line.split(' ', 2)
+	if (task.count(wanted) > 0 and int(begin) >= minutc and int(end) <= maxutc):
+		if (flag):
+			sys.stdout.write(line)
+	elif (not flag):
+		sys.stdout.write(line)
+END
+	)
+
 	bak=$(mktemp)
-	<"$histfile" grep "^$1[ /]" >> "$archivefile"
-	<"$histfile" grep -v "^$1[ /]" > "$bak"
-	count=$(<"$histfile" grep --count "^$1[ /]")
+	<"$histfile" python -c "$pyfilter" "$1" "$2" "$3" match >> "$archivefile"
+	<"$histfile" python -c "$pyfilter" "$1" "$2" "$3" drop > "$bak"
+	count=$(<"$histfile" python -c "$pyfilter" "$1" "$2" "$3" match | wc -l)
 	echo "archived $1 ($count entries)"
 	mv "$bak" "$histfile"
 }
@@ -86,7 +103,6 @@ import sys
 
 minutc = int(sys.argv[1])
 maxutc = int(sys.argv[2])
-
 sum = 0
 count = Counter()
 for line in sys.stdin:
@@ -152,13 +168,22 @@ if [ "$1" == 'stop' ]; then
 fi
 
 if [ "$1" == 'archive' ]; then
-	if [ "$#" -ne 3 ]; then
-		archivetask "$2"
-		exit 0
+	if [ "$#" -eq 2 ]; then
+		a=$(date --date="last year" +%s)
+		b="$utc"
+	elif [ "$#" -eq 3 ]; then
+		a=$(date --date="last year" +%s)
+		b=$(date --date="$3" +%s)
+	elif [ "$#" -eq 4 ]; then
+		a=$(date --date="$3" +%s)
+		b=$(date --date="$4" +%s)
+	else
+		echo 'Invalid arguments'
+		exit 1
 	fi
 
-	echo 'Invalid arguments'
-	exit 1
+	archivetask "$2" "$a" "$b"
+	exit 0
 fi
 
 if [ "$1" == 'last' ]; then
