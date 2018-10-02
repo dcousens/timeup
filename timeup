@@ -104,6 +104,7 @@ import sys
 minutc = int(sys.argv[1])
 maxutc = int(sys.argv[2])
 sum = 0
+durations = Counter()
 count = Counter()
 for line in sys.stdin:
 	(task, begin, end) = line.split(' ', 2)
@@ -113,14 +114,17 @@ for line in sys.stdin:
 	if (end > maxutc): continue
 
 	duration = end - begin
-	count[task] += duration
-	sum += duration
+	durations[task] += duration
+	count[task] += 1
+	durations['total'] += duration
+	count['total'] += 1
 
-report = sorted((x, count[x]) for x in count)
+report = sorted((x, durations[x]) for x in durations)
 for a, b in report:
-	print(a, b)
+	if (a == 'total'): continue
+	print(a, count[a], b)
 
-print('total', sum)
+print('total', count['total'], durations['total'])
 END
 	)
 
@@ -141,9 +145,10 @@ END
 		fi
 	} | python -c "$pymap" "$1" "$2" | while read -r line; do
 		_task=$(echo "$line" | cut -f1 -d' ')
-		_seconds=$(echo "$line" | cut -f2 -d' ')
+		_instances=$(echo "$line" | cut -f2 -d' ')
+		_seconds=$(echo "$line" | cut -f3 -d' ')
 		duration=$(showtime "$_seconds")
-		printf "$_format" "$_task" "$duration"
+		printf "$_format" "$_task ($_instances)" "$duration"
 	done
 }
 
