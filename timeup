@@ -287,8 +287,11 @@ if [ "$1" == 'report' ] || [ "$1" == 'areport' ]; then
 		task="$4"
 	fi
 
-	doarchive=$([ "$1" == 'areport' ] && echo ' ')
-	report "$minutc" "$maxutc" "$task" "$doarchive"
+	if [ "$1" == 'areport' ]; then
+		report "$minutc" "$maxutc" "$task" archive
+	else
+		report "$minutc" "$maxutc" "$task"
+	fi
 	exit 0
 fi
 
