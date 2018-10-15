@@ -45,6 +45,11 @@ histfile="$timedir/history.txt"
 lockfile="$timedir/.lock"
 nbsp='<i> </i>'
 
+# filters
+task=''
+minutc=0
+maxutc=4131262800 # 2100-12-1
+
 function track () {
 	diff=$(datediff "$2" "$3")
 	duration=$(showtime "$diff")
@@ -78,9 +83,9 @@ END
 
 function archivetask () {
 	bak=$(mktemp)
-	<"$histfile" python -c "$pyfilter" "$1" "$2" "$3" match >> "$archivefile"
-	<"$histfile" python -c "$pyfilter" "$1" "$2" "$3" drop > "$bak"
-	count=$(<"$histfile" python -c "$pyfilter" "$1" "$2" "$3" match | wc -l)
+	<"$histfile" python -c "$pyfilter" "$3" "$1" "$2" match >> "$archivefile"
+	<"$histfile" python -c "$pyfilter" "$3" "$1" "$2" drop > "$bak"
+	count=$(<"$histfile" python -c "$pyfilter" "$3" "$1" "$1" match | wc -l)
 	echo "archived $1 ($count entries)"
 	mv "$bak" "$histfile"
 }
@@ -184,25 +189,6 @@ if [ "$1" == 'stop' ]; then
 	exit 0
 fi
 
-if [ "$1" == 'archive' ]; then
-	if [ "$#" -eq 2 ]; then
-		a=$(date --date="last year" +%s)
-		b="$utc"
-	elif [ "$#" -eq 3 ]; then
-		a=$(date --date="last year" +%s)
-		b=$(date --date="$3" +%s)
-	elif [ "$#" -eq 4 ]; then
-		a=$(date --date="$3" +%s)
-		b=$(date --date="$4" +%s)
-	else
-		echo 'Invalid arguments'
-		exit 1
-	fi
-
-	archivetask "$2" "$a" "$b"
-	exit 0
-fi
-
 if [ "$1" == 'last' ]; then
 	line=$(<"$histfile" tail -n1)
 	_task=$(echo "$line" | cut -f1 -d' ')
@@ -214,25 +200,39 @@ fi
 
 if [ "$1" == 'track' ]; then
 	if [ "$#" -eq 3 ]; then
-		a=$(date --date="now-$3" +%s)
-		b="$utc"
+		minutc=$(date --date="now-$3" +%s)
+		maxutc="$utc"
 	elif [ "$#" -eq 4 ]; then
-		a=$(date --date="$3" +%s)
-		b=$(date --date="$4" +%s)
+		minutc=$(date --date="$3" +%s)
+		maxutc=$(date --date="$4" +%s)
 	else
 		echo 'Invalid arguments'
 		exit 1
 	fi
 
-	track "$2" "$a" "$b"
+	track "$2" "$minutc" "$maxutc"
 	exit 0
 fi
 
-if [ "$1" == 'log' ]; then
-	minutc=0
-	maxutc=4131262800 # 2100-12-1
-	task=''
+if [ "$1" == 'archive' ]; then
+	if [ "$#" -eq 2 ]; then
+		minutc=$(date --date="last year" +%s)
+	elif [ "$#" -eq 3 ]; then
+		minutc=$(date --date="last year" +%s)
+		maxutc=$(date --date="$3" +%s)
+	elif [ "$#" -eq 4 ]; then
+		minutc=$(date --date="$3" +%s)
+		maxutc=$(date --date="$4" +%s)
+	else
+		echo 'Invalid arguments'
+		exit 1
+	fi
 
+	archivetask "$minutc" "$maxutc" "$2"
+	exit 0
+fi
+
+if [ "$1" == 'report' ] || [ "$1" == 'areport' ] || [ "$1" == "log" ]; then
 	# date to date
 	if [ "$#" -gt 2 ]; then
 		minutc=$(date --date="$2" +%s)
@@ -258,7 +258,13 @@ if [ "$1" == 'log' ]; then
 		task="$4"
 	fi
 
-	logrange "$minutc" "$maxutc" "$task"
+	if [ "$1" == 'areport' ]; then
+		report "$minutc" "$maxutc" "$task" archive
+	elif [ "$1" == 'report' ]; then
+		report "$minutc" "$maxutc" "$task"
+	else
+		logrange "$minutc" "$maxutc" "$task"
+	fi
 	exit 0
 fi
 
@@ -292,46 +298,8 @@ if [ "$1" == 'edit' ]; then
 		exit 1
 	fi
 
-	drop
+	sed -i '$ d' "$histfile"
 	track "$_task" "$a" "$b"
-	exit 0
-fi
-
-if [ "$1" == 'report' ] || [ "$1" == 'areport' ]; then
-	minutc=0
-	maxutc=4131262800 # 2100-12-1
-	task=''
-
-	# date to date
-	if [ "$#" -gt 2 ]; then
-		minutc=$(date --date="$2" +%s)
-		maxutc=$(date --date="$3" +%s)
-	# 1 day
-	elif [ "$#" -gt 1 ]; then
-		minutc="$2"
-		if [ "$2" == "today" ]; then
-			minutc="0:00"
-		fi
-
-		minutc=$(date --date="$minutc" +%s 2> /dev/null)
-		if [ -z "$minutc" ]; then
-			minutc=0
-			task="$2"
-		else
-			maxutc=$(echo "$minutc+86400" | bc)
-		fi
-	fi
-
-	# support task filtering
-	if [ "$#" -gt 3 ]; then
-		task="$4"
-	fi
-
-	if [ "$1" == 'areport' ]; then
-		report "$minutc" "$maxutc" "$task" archive
-	else
-		report "$minutc" "$maxutc" "$task"
-	fi
 	exit 0
 fi
 
