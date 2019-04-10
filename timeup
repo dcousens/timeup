@@ -43,7 +43,6 @@ fi
 archivefile="$timedir/archived.txt"
 histfile="$timedir/history.txt"
 lockfile="$timedir/.lock"
-nbsp='<i> </i>'
 
 # filters
 task=''
@@ -53,7 +52,7 @@ maxutc=4131262800 # 2100-12-1
 function track () {
 	diff=$(datediff "$2" "$3")
 	duration=$(showtime "$diff")
-	notify-send -u critical -t 4000 "$nbsp$1 ($duration)"
+	notify-send -u critical -t 4000 '' "$1 ($duration)"
 	echo "logged $1 ($duration)"
 	echo "$1 $2 $3" >> "$histfile"
 }
@@ -95,7 +94,7 @@ function starttask () {
 		endtask
 	fi
 
-	notify-send "$nbsp$1 started"
+	notify-send '' "$1 started"
 	echo "$1 $utc" > "$lockfile"
 }
 
@@ -277,7 +276,7 @@ if [ "$1" == 'drop' ]; then
 	duration=$(showtime "$diff")
 
 	sed -i '$ d' "$histfile"
-	notify-send -u critical -t 4000 "$nbsp""Dropped $_task ($duration)"
+	notify-send -u critical -t 4000 '' "Dropped $_task ($duration)"
 	exit 1
 fi
 
