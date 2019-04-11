@@ -57,6 +57,31 @@ function track () {
 	echo "$1 $2 $3" >> "$histfile"
 }
 
+function comment () {
+	_task=$(echo -n "$1" | sed 's/\//_/g')
+	_file="$timedir/comments/""$_task""_$2_$3"
+	st -e "$EDITOR" "$_file"
+	if [ ! -s "$_file" ]; then
+		rm "$_file"
+	fi
+}
+
+function uncomment () {
+	_task=$(echo -n "$1" | sed 's/\//_/g')
+	_file="$timedir/comments/""$_task""_$2_$3"
+	if [ -f "$_file" ]; then
+		rm "$_file"
+	fi
+}
+
+function mvcomment () {
+	_task=$(echo -n "$1" | sed 's/\//_/g')
+	_file="$timedir/comments/""$_task""_$2_$3"
+	if [ -f "$_file" ]; then
+		mv "$_file" "$timedir/comments/""$_task""_$4_$5"
+	fi
+}
+
 function endtask () {
 	_task=$(<"$lockfile" cut -f1 -d' ')
 	_since=$(<"$lockfile" cut -f2 -d' ')
@@ -276,6 +301,7 @@ if [ "$1" == 'drop' ]; then
 	duration=$(showtime "$diff")
 
 	sed -i '$ d' "$histfile"
+	uncomment "$_task" "$_utc1" "$_utc2"
 	notify-send -u critical -t 4000 '' "Dropped $_task ($duration)"
 	exit 1
 fi
@@ -283,6 +309,7 @@ fi
 if [ "$1" == 'edit' ]; then
 	line=$(<"$histfile" tail -n1)
 	_task=$(echo "$line" | cut -f1 -d' ')
+	_utc1=$(echo "$line" | cut -f2 -d' ')
 	_utc2=$(echo "$line" | cut -f3 -d' ')
 
 	if [ "$#" -eq 2 ]; then
@@ -298,7 +325,18 @@ if [ "$1" == 'edit' ]; then
 	fi
 
 	sed -i '$ d' "$histfile"
+	mvcomment "$_task" "$_utc1" "$_utc2" "$_a" "$_b"
 	track "$_task" "$a" "$b"
+	exit 0
+fi
+
+if [ "$1" == 'comment' ]; then
+	line=$(<"$histfile" tail -n1)
+	_task=$(echo "$line" | cut -f1 -d' ')
+	_utc1=$(echo "$line" | cut -f2 -d' ')
+	_utc2=$(echo "$line" | cut -f3 -d' ')
+
+	comment "$_task" "$_utc1" "$_utc2"
 	exit 0
 fi
 
