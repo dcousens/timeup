@@ -62,7 +62,7 @@ function comment () {
 	_file="$timedir/comments/""$_task""_$2_$3"
 	st -e "$EDITOR" "$_file"
 	if [ ! -s "$_file" ]; then
-		rm "$_file"
+		rm --force "$_file"
 	fi
 }
 
@@ -191,7 +191,12 @@ function log () {
 	_b=$(date --date=@"$3" +"%a %H:%M %d/%m")
 	diff=$(datediff "$2" "$3")
 	duration=$(showtime "$diff")
+	_task=$(echo -n "$1" | sed 's/\//_/g')
+	_file="$timedir/comments/""$_task""_$2_$3"
 	echo "$1, $_a to $_b for $duration"
+	if [ -f "$_file" ]; then
+		<"$_file" sed 's/^/	/g'
+	fi
 }
 
 function logrange () {
