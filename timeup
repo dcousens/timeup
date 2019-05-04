@@ -311,6 +311,38 @@ if [ "$1" == 'drop' ]; then
 	exit 1
 fi
 
+if [ "$1" == 'status' ]; then
+	if [ ! -f "$lockfile" ]; then
+		exit 1
+	fi
+
+	_task=$(<"$lockfile" cut -f1 -d' ')
+	_since=$(<"$lockfile" cut -f2 -d' ')
+	diff=$(datediff "$_since" "$utc")
+	duration=$(showtime "$diff")
+
+	echo "$_task for $duration"
+	exit 1
+fi
+
+if [ "$1" == 'continue' ]; then
+	if [ -f "$lockfile" ]; then
+		endtask
+	fi
+
+	line=$(<"$histfile" tail -n1)
+	_task=$(echo "$line" | cut -f1 -d' ')
+	_utc1=$(echo "$line" | cut -f2 -d' ')
+	_utc2=$(echo "$line" | cut -f3 -d' ')
+	diff=$(datediff "$_utc1" "$_utc2")
+	duration=$(showtime "$diff")
+
+	sed -i '$ d' "$histfile"
+	notify-send -u critical -t 4000 '' "Continuing $_task ($duration)"
+	echo "$_task $_utc1" > "$lockfile"
+	exit 1
+fi
+
 if [ "$1" == 'edit' ]; then
 	line=$(<"$histfile" tail -n1)
 	_task=$(echo "$line" | cut -f1 -d' ')
