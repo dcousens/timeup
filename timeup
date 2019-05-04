@@ -58,8 +58,8 @@ function track () {
 }
 
 function comment () {
-	_task=$(echo -n "$1" | sed 's/\//_/g')
-	_file="$timedir/comments/""$_task""_$2"
+	_task_=$(echo -n "$1" | sed 's/\//_/g')
+	_file="$timedir/comments/""$_task_""_$2"
 	st -e "$EDITOR" "$_file"
 	if [ ! -s "$_file" ]; then
 		rm --force "$_file"
@@ -67,18 +67,18 @@ function comment () {
 }
 
 function uncomment () {
-	_task=$(echo -n "$1" | sed 's/\//_/g')
-	_file="$timedir/comments/""$_task""_$2"
+	_task_=$(echo -n "$1" | sed 's/\//_/g')
+	_file="$timedir/comments/""$_task_""_$2"
 	if [ -f "$_file" ]; then
 		rm "$_file"
 	fi
 }
 
 function mvcomment () {
-	_task=$(echo -n "$1" | sed 's/\//_/g')
-	_file="$timedir/comments/""$_task""_$2"
+	_task_=$(echo -n "$1" | sed 's/\//_/g')
+	_file="$timedir/comments/""$_task_""_$2"
 	if [ -f "$_file" ]; then
-		mv "$_file" "$timedir/comments/""$_task""_$3"
+		mv "$_file" "$timedir/comments/""$_task_""_$3"
 	fi
 }
 
