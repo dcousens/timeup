@@ -113,7 +113,7 @@ function archivetask () {
 	<"$histfile" python -c "$pyfilter" "$3" "$1" "$2" match >> "$archivefile"
 	<"$histfile" python -c "$pyfilter" "$3" "$1" "$2" drop > "$bak"
 	count=$(<"$histfile" python -c "$pyfilter" "$3" "$1" "$1" match | wc -l)
-	echo "archived $1 ($count entries)"
+	echo "archived $3 ($count entries)"
 	mv "$bak" "$histfile"
 }
 
