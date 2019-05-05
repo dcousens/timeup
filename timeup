@@ -97,11 +97,14 @@ minutc = int(sys.argv[2])
 maxutc = int(sys.argv[3])
 match = sys.argv[4] == 'match'
 for line in sys.stdin:
-	(task, begin, end) = line.split(' ', 2)
-	if (match and task.count(wanted) > 0 and int(begin) >= minutc and int(end) <= maxutc):
-		sys.stdout.write(line)
-	elif (not match):
-		sys.stdout.write(line)
+  (task, begin, end) = line.split(' ', 2)
+  begin = int(begin)
+  end = int(end)
+  if (begin >= minutc and end <= maxutc and task.count(wanted) > 0):
+    if (match):
+      sys.stdout.write(line)
+  elif (not match):
+    sys.stdout.write(line)
 END
 )
 
