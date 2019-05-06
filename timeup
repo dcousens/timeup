@@ -188,6 +188,15 @@ function logrange () {
 	done
 }
 
+if [ "$1" == 'start' ]; then
+	if [ -f "$lockfile" ]; then
+		endtask
+	fi
+	starttask "$2"
+
+	exit 0
+fi
+
 if [ "$1" == 'stop' ]; then
 	if [ -f "$lockfile" ]; then
 		endtask
