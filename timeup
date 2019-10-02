@@ -262,7 +262,15 @@ if [ "$1" == 'report' ] || [ "$1" == 'areport' ] || [ "$1" == "log" ]; then
 	elif [ "$#" -gt 1 ]; then
 		minutc="$2"
 		if [ "$2" == "today" ]; then
-			minutc="0:00"
+			minutc="today 0:00"
+		fi
+
+		if [ "$2" == "yesterday" ]; then
+			minutc="yesterday 0:00"
+		fi
+
+		if [ "$2" == "tomorrow" ]; then
+			minutc="tomorrow 0:00"
 		fi
 
 		minutc=$(date --date="$minutc" +%s 2> /dev/null)
