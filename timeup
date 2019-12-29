@@ -43,6 +43,7 @@ fi
 archivefile="$timedir/archived.txt"
 histfile="$timedir/history.txt"
 lockfile="$timedir/.lock"
+tagsfile="$timedir/tags.txt"
 
 function track () {
 	diff=$(datediff "$2" "$3")
@@ -387,6 +388,7 @@ task=$( \
 		<"$histfile" tail -n5 # recent 5
 		<"$histfile" tail -n50 | cut -f1 -d' ' | sort --unique # recent 50
 		<"$histfile" tail -n100 | cut -f1 -d' ' | sort --unique # recent 100
+		<"$tagsfile" cat
 	} | cut -f1 -d' ' \
 	| sort \
 	| uniq --count \
