@@ -66,34 +66,6 @@ function endtask () {
 	rm --force "$lockfile.comment"
 }
 
-pyfilter=$(cat << END
-import sys
-
-wanted = sys.argv[1]
-minutc = int(sys.argv[2])
-maxutc = int(sys.argv[3])
-match = sys.argv[4] == 'match'
-for line in sys.stdin:
-	(task, begin, end, *_) = line.split(' ', 3)
-	begin = int(begin)
-	end = int(end)
-	if (begin >= minutc and end <= maxutc and task.count(wanted) > 0):
-		if (match):
-			sys.stdout.write(line)
-	elif (not match):
-		sys.stdout.write(line)
-END
-)
-
-function archivetask () {
-	bak=$(mktemp)
-	<"$histfile" python -c "$pyfilter" "$3" "$1" "$2" match >> "$archivefile"
-	<"$histfile" python -c "$pyfilter" "$3" "$1" "$2" drop > "$bak"
-	count=$(diff "$histfile" "$bak" | wc -l)
-	echo "archived $3 ($count entries)"
-	mv "$bak" "$histfile"
-}
-
 function starttask () {
 	if [ -f "$lockfile" ]; then
 		endtask
@@ -103,14 +75,59 @@ function starttask () {
 	echo "$1 $now" > "$lockfile"
 }
 
-# shellcheck disable=SC2059
-function report () {
-	pymap=$(cat << END
-from collections import Counter
+function filtered () {
+	_min="$1"
+	_max="$2"
+	_task="$3"
+	_archive="$4"
+	_drop="$5"
+
+	pyfilter=$(cat << END
 import sys
 
 minutc = int(sys.argv[1])
 maxutc = int(sys.argv[2])
+wanted = sys.argv[3]
+drop = sys.argv[4] == 'drop'
+for line in sys.stdin:
+	(task, begin, end, *_) = line.split(' ', 3)
+	begin = int(begin)
+	end = int(end)
+	if (begin >= minutc and begin <= maxutc and task.count(wanted) > 0):
+		if (not drop):
+			sys.stdout.write(line)
+	elif (drop):
+		sys.stdout.write(line)
+END
+	)
+
+	{
+		if [ -n "$_task" ]; then
+			<"$histfile" grep "^${_task}[ /]"
+			[ -n "$_archive" ] && <"$archivefile" grep "^${_task}[ /]"
+		else
+			cat "$histfile"
+			[ -n "$_archive" ] && cat "$archivefile"
+		fi
+	}	| python -c "$pyfilter" "$_min" "$_max" "$_task" "$_drop"
+}
+
+
+function archivetask () {
+	dropped=$(mktemp)
+	<"$histfile" filtered "$1" "$2" "$3" "" >> "$archivefile"
+	<"$histfile" filtered "$1" "$2" "$3" "" drop > "$dropped"
+	count=$(diff -y "$histfile" "$dropped" | grep -o '<' | wc -l)
+	echo "archived $3 ($count entries)"
+	mv "$dropped" "$histfile"
+}
+
+# shellcheck disable=SC2059
+function reporter () {
+	pymap=$(cat << END
+from collections import Counter
+import sys
+
 sum = 0
 durations = Counter()
 count = Counter()
@@ -118,9 +135,6 @@ for line in sys.stdin:
 	(task, begin, end, *_) = line.split(' ', 3)
 	begin = int(begin)
 	end = int(end)
-	if (begin < minutc): continue
-	if (end > maxutc): continue
-
 	duration = end - begin
 	durations[task] += duration
 	count[task] += 1
@@ -138,21 +152,10 @@ END
 	)
 
 	_format='%-24s %-14s %-5s\n'
-	if [ -n "$3" ]; then
-		printf "$_format" "Task ($3)" 'Duration' 'Count'
-	else
-		printf "$_format" 'Task' 'Duration' 'Count'
-	fi
+
+	printf "$_format" 'Task' 'Duration' 'Count'
 	printf "$_format" '------------------------' '--------------' '-----'
-	{
-		if [ -n "$3" ]; then
-			<"$histfile" grep "^$3[ /]"
-			[ -n "$4" ] && <"$archivefile" grep "^$3[ /]"
-		else
-			cat "$histfile"
-			[ -n "$4" ] && cat "$archivefile"
-		fi
-	} | python -c "$pymap" "$1" "$2" | while read -r line; do
+	python -c "$pymap" | while read -r line; do
 		if [ -z "$line" ]; then
 			printf "$_format" '------------------------' '--------------' '-----'
 			continue
@@ -177,10 +180,8 @@ function log () {
 	fi
 }
 
-function logrange () {
-	{
-		<"$histfile" python -c "$pyfilter" "$3" "$1" "$2" match
-	} | while read -r line; do
+function logger () {
+	while read -r line; do
 		_task=$(echo "$line" | cut -f1 -d' ')
 		_utc1=$(echo "$line" | cut -f2 -d' ')
 		_utc2=$(echo "$line" | cut -f3 -d' ')
@@ -254,7 +255,7 @@ if [ "$1" == 'archive' ]; then
 	exit 0
 fi
 
-if [ "$1" == 'report' ] || [ "$1" == 'areport' ] || [ "$1" == "log" ]; then
+if [ "$1" == 'report' ] || [ "$1" == 'areport' ] || [ "$1" == 'log' ]; then
 	# date to date
 	if [ "$#" -gt 2 ]; then
 		minutc=$(date --date="$2" +%s)
@@ -262,16 +263,16 @@ if [ "$1" == 'report' ] || [ "$1" == 'areport' ] || [ "$1" == "log" ]; then
 	# 1 day
 	elif [ "$#" -gt 1 ]; then
 		minutc="$2"
-		if [ "$2" == "today" ]; then
-			minutc="today 0:00"
+		if [ "$2" == 'today' ]; then
+			minutc='today 0:00'
 		fi
 
-		if [ "$2" == "yesterday" ]; then
-			minutc="yesterday 0:00"
+		if [ "$2" == 'yesterday' ]; then
+			minutc='yesterday 0:00'
 		fi
 
-		if [ "$2" == "tomorrow" ]; then
-			minutc="tomorrow 0:00"
+		if [ "$2" == 'tomorrow' ]; then
+			minutc='tomorrow 0:00'
 		fi
 
 		minutc=$(date --date="$minutc" +%s 2> /dev/null)
@@ -289,11 +290,11 @@ if [ "$1" == 'report' ] || [ "$1" == 'areport' ] || [ "$1" == "log" ]; then
 	fi
 
 	if [ "$1" == 'areport' ]; then
-		report "$minutc" "$maxutc" "$task" archive
+		filtered "$minutc" "$maxutc" "$task" archive | reporter "$task"
 	elif [ "$1" == 'report' ]; then
-		report "$minutc" "$maxutc" "$task"
+		filtered "$minutc" "$maxutc" "$task" | reporter
 	else
-		logrange "$minutc" "$maxutc" "$task"
+		filtered "$minutc" "$maxutc" "$task" | logger
 	fi
 	exit 0
 fi
