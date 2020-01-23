@@ -102,24 +102,19 @@ END
 	)
 
 	{
-		if [ -n "$_task" ]; then
-			<"$histfile" grep "^${_task}[ /]"
-			[ -n "$_archive" ] && <"$archivefile" grep "^${_task}[ /]"
-		else
-			cat "$histfile"
-			[ -n "$_archive" ] && cat "$archivefile"
-		fi
+		cat "$histfile"
+		[ -n "$_archive" ] && cat "$archivefile"
 	}	| python -c "$pyfilter" "$_min" "$_max" "$_task" "$_drop"
 }
 
 
 function archivetask () {
-	dropped=$(mktemp)
+	newhist=$(mktemp)
 	<"$histfile" filtered "$1" "$2" "$3" "" >> "$archivefile"
-	<"$histfile" filtered "$1" "$2" "$3" "" drop > "$dropped"
-	count=$(diff -y "$histfile" "$dropped" | grep -o '<' | wc -l)
+	<"$histfile" filtered "$1" "$2" "$3" "" drop > "$newhist"
+	count=$(diff -y "$histfile" "$newhist" | grep -o '<' | wc -l)
 	echo "archived $3 ($count entries)"
-	mv "$dropped" "$histfile"
+	mv "$newhist" "$histfile"
 }
 
 # shellcheck disable=SC2059
