@@ -250,7 +250,7 @@ if [ "$1" == 'archive' ]; then
 	exit 0
 fi
 
-if [ "$1" == 'report' ] || [ "$1" == 'areport' ] || [ "$1" == 'log' ]; then
+if [ "$1" == 'report' ] || [ "$1" == 'areport' ] || [ "$1" == 'log' ] || [ "$1" == 'summary' ]; then
 	# date to date
 	if [ "$#" -gt 2 ]; then
 		minutc=$(date --date="$2" +%s)
@@ -288,6 +288,9 @@ if [ "$1" == 'report' ] || [ "$1" == 'areport' ] || [ "$1" == 'log' ]; then
 		filtered "$minutc" "$maxutc" "$task" archive | reporter "$task"
 	elif [ "$1" == 'report' ]; then
 		filtered "$minutc" "$maxutc" "$task" | reporter
+	elif [ "$1" == 'summary' ]; then
+		filtered "$minutc" "$maxutc" "$task" | reporter
+		filtered "$minutc" "$maxutc" "$task" | logger
 	else
 		filtered "$minutc" "$maxutc" "$task" | logger
 	fi
