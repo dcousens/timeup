@@ -165,8 +165,8 @@ END
 
 # boo, poor performance
 function log () {
-	_a=$(date --date=@"$2" +"%a %H:%M %d/%m")
-	_b=$(date --date=@"$3" +"%a %H:%M %d/%m")
+	_a=$(date --date=@"$2" +"%Y/%m/%d %H:%M %a")
+	_b=$(date --date=@"$3" +"%Y/%m/%d %H:%M %a")
 	diff=$(datediff "$2" "$3")
 	duration=$(showtime "$diff")
 	echo "$1, $_a to $_b for $duration"
