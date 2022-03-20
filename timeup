@@ -154,9 +154,9 @@ END
 			printf "$_format" '------------------------' '--------------' '-----'
 			continue
 		fi
-		_task=$(echo "$line" | cut -f1 -d' ')
-		_instances=$(echo "$line" | cut -f2 -d' ')
-		_seconds=$(echo "$line" | cut -f3 -d' ')
+		_task=$(cut -f1 -d' ' <<< "$line")
+		_instances=$(cut -f2 -d' ' <<< "$line")
+		_seconds=$(cut -f3 -d' ' <<< "$line")
 		duration=$(showtime "$_seconds")
 		printf "$_format" "$_task" "$duration" "$_instances"
 	done
@@ -176,12 +176,31 @@ function log () {
 
 function logger () {
 	while read -r line; do
-		_task=$(echo "$line" | cut -f1 -d' ')
-		_utc1=$(echo "$line" | cut -f2 -d' ')
-		_utc2=$(echo "$line" | cut -f3 -d' ')
-		_comment=$(echo "$line" | cut -f4- -d' ')
+		_task=$(cut -f1 -d' ' <<< "$line")
+		_utc1=$(cut -f2 -d' ' <<< "$line")
+		_utc2=$(cut -f3 -d' ' <<< "$line")
+		_comment=$(cut -f4- -d' ' <<< "$line")
 		log "$_task" "$_utc1" "$_utc2" "$_comment"
 	done
+}
+
+function cont () {
+	if [ -f "$lockfile" ]; then
+		endtask
+	fi
+
+	line=$(<"$histfile" tail -n1)
+	_task=$(cut -f1 -d' ' <<< "$line")
+	_utc1=$(cut -f2 -d' ' <<< "$line")
+	_utc2=$(cut -f3 -d' ' <<< "$line")
+	_comment=$(cut -f4- -d' ' <<< "$line")
+	diff=$(datediff "$_utc1" "$_utc2")
+	duration=$(showtime "$diff")
+
+	sed -i '$ d' "$histfile"
+	notify-send -u critical -t 4000 '' "Continuing $_task ($duration)"
+	echo "$_task $_utc1" > "$lockfile"
+	echo -n "$_comment" | sed -z 's/\\n/\n/g' > "$lockfile.comment"
 }
 
 if [ "$1" == 'start' ]; then
@@ -203,9 +222,9 @@ fi
 
 if [ "$1" == 'last' ]; then
 	line=$(<"$histfile" tail -n1)
-	_task=$(echo "$line" | cut -f1 -d' ')
-	_utc1=$(echo "$line" | cut -f2 -d' ')
-	_utc2=$(echo "$line" | cut -f3 -d' ')
+	_task=$(cut -f1 -d' ' <<< "$line")
+	_utc1=$(cut -f2 -d' ' <<< "$line")
+	_utc2=$(cut -f3 -d' ' <<< "$line")
 	log "$_task" "$_utc1" "$_utc2"
 	exit 0
 fi
@@ -300,9 +319,9 @@ fi
 
 if [ "$1" == 'drop' ]; then
 	line=$(<"$histfile" tail -n1)
-	_task=$(echo "$line" | cut -f1 -d' ')
-	_utc1=$(echo "$line" | cut -f2 -d' ')
-	_utc2=$(echo "$line" | cut -f3 -d' ')
+	_task=$(cut -f1 -d' ' <<< "$line")
+	_utc1=$(cut -f2 -d' ' <<< "$line")
+	_utc2=$(cut -f3 -d' ' <<< "$line")
 	diff=$(datediff "$_utc1" "$_utc2")
 	duration=$(showtime "$diff")
 
@@ -326,31 +345,16 @@ if [ "$1" == 'status' ]; then
 fi
 
 if [ "$1" == 'continue' ]; then
-	if [ -f "$lockfile" ]; then
-		endtask
-	fi
-
-	line=$(<"$histfile" tail -n1)
-	_task=$(echo "$line" | cut -f1 -d' ')
-	_utc1=$(echo "$line" | cut -f2 -d' ')
-	_utc2=$(echo "$line" | cut -f3 -d' ')
-	_comment=$(echo "$line" | cut -f4- -d' ')
-	diff=$(datediff "$_utc1" "$_utc2")
-	duration=$(showtime "$diff")
-
-	sed -i '$ d' "$histfile"
-	notify-send -u critical -t 4000 '' "Continuing $_task ($duration)"
-	echo "$_task $_utc1" > "$lockfile"
-	echo -n "$_comment" | sed -z 's/\\n/\n/g' > "$lockfile.comment"
+	cont
 	exit 0
 fi
 
 if [ "$1" == 'edit' ]; then
 	line=$(<"$histfile" tail -n1)
-	_task=$(echo "$line" | cut -f1 -d' ')
-	_utc1=$(echo "$line" | cut -f2 -d' ')
-	_utc2=$(echo "$line" | cut -f3 -d' ')
-	_comment=$(echo "$line" | cut -f4- -d' ')
+	_task=$(cut -f1 -d' ' <<< "$line")
+	_utc1=$(cut -f2 -d' ' <<< "$line")
+	_utc2=$(cut -f3 -d' ' <<< "$line")
+	_comment=$(cut -f4- -d' ' <<< "$line")
 
 	if [ "$#" -eq 2 ]; then
 		tmp=$(date --date=@"$_utc2")
@@ -389,6 +393,7 @@ task=$( \
 		<"$histfile" tail -n50 | cut -f1 -d' ' | sort --unique # recent 50
 		<"$histfile" tail -n100 | cut -f1 -d' ' | sort --unique # recent 100
 		<"$tagsfile" cat
+		echo 'continue'
 		echo 'stop'
 	} | cut -f1 -d' ' \
 	| sort \
@@ -396,6 +401,11 @@ task=$( \
 	| sort -k1,1nr -k2,2 \
 	| colrm 1 8 \
 	| dmenu "$@")
+
+if [ "$task" == 'continue' ]; then
+	cont
+	exit 0
+fi
 
 if [ "$task" == 'stop' ]; then
 	if [ -f "$lockfile" ]; then
