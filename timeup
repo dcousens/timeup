@@ -388,12 +388,21 @@ task=$( \
 		<"$histfile" tail -n50 | cut -f1 -d' ' | sort --unique # recent 50
 		<"$histfile" tail -n100 | cut -f1 -d' ' | sort --unique # recent 100
 		<"$tagsfile" cat
+		echo 'stop'
 	} | cut -f1 -d' ' \
 	| sort \
 	| uniq --count \
 	| sort -k1,1nr -k2,2 \
 	| colrm 1 8 \
 	| dmenu "$@")
+
+if [ "$task" == 'stop' ]; then
+	if [ -f "$lockfile" ]; then
+		endtask
+	fi
+
+	exit 0
+fi
 
 if [ -z "$task" ]; then
 	exit 0
