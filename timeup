@@ -107,7 +107,6 @@ END
 	}	| python -c "$pyfilter" "$_min" "$_max" "$_task" "$_drop"
 }
 
-
 function archivetask () {
 	newhist=$(mktemp)
 	<"$histfile" filtered "$1" "$2" "$3" "" >> "$archivefile"
@@ -250,7 +249,7 @@ if [ "$1" == 'archive' ]; then
 	exit 0
 fi
 
-if [ "$1" == 'report' ] || [ "$1" == 'areport' ] || [ "$1" == 'log' ] || [ "$1" == 'summary' ]; then
+if [ "$1" == 'report' ] || [ "$1" == 'areport' ] || [ "$1" == 'log' ] || [ "$1" == 'alog' ] || [ "$1" == 'summary' ]; then
 	# date to date
 	if [ "$#" -gt 2 ]; then
 		minutc=$(date --date="$2" +%s)
@@ -289,8 +288,10 @@ if [ "$1" == 'report' ] || [ "$1" == 'areport' ] || [ "$1" == 'log' ] || [ "$1" 
 	elif [ "$1" == 'report' ]; then
 		filtered "$minutc" "$maxutc" "$task" | reporter
 	elif [ "$1" == 'summary' ]; then
-		filtered "$minutc" "$maxutc" "$task" | reporter
-		filtered "$minutc" "$maxutc" "$task" | logger
+		filtered "$minutc" "$maxutc" "$task" archive | reporter
+		filtered "$minutc" "$maxutc" "$task" archive | logger
+	elif [ "$1" == 'alog' ]; then
+		filtered "$minutc" "$maxutc" "$task" archive | logger
 	else
 		filtered "$minutc" "$maxutc" "$task" | logger
 	fi
